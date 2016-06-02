@@ -129,7 +129,7 @@ class MongoContentStore(ContentStore):
                     thumbnail_location=thumbnail_location,
                     import_path=getattr(fp, 'import_path', None),
                     length=fp.length, locked=getattr(fp, 'locked', False),
-                    content_digest=getattr(fp, 'md5', None)
+                    content_digest=getattr(fp, 'md5', None),
                 )
             else:
                 with self.fs.get(content_id) as fp:
@@ -144,7 +144,7 @@ class MongoContentStore(ContentStore):
                         thumbnail_location=thumbnail_location,
                         import_path=getattr(fp, 'import_path', None),
                         length=fp.length, locked=getattr(fp, 'locked', False),
-                        content_digest=getattr(fp, 'md5', None)
+                        content_digest=getattr(fp, 'md5', None),
                     )
         except NoFile:
             if throw_on_not_found:
