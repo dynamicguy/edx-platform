@@ -97,6 +97,17 @@ class ContentStoreToyCourseTest(SharedModuleStoreTestCase):
         resp = self.client.get(self.url_unlocked_versioned)
         self.assertEqual(resp.status_code, 200)
 
+    def test_locked_versioned_asset(self):
+        """
+        Test that locked assets that are versioned are being served.
+        """
+        CourseEnrollment.enroll(self.non_staff_usr, self.course_key)
+        self.assertTrue(CourseEnrollment.is_enrolled(self.non_staff_usr, self.course_key))
+
+        self.client.login(username=self.non_staff_usr, password='test')
+        resp = self.client.get(self.url_locked_versioned)
+        self.assertEqual(resp.status_code, 200)
+
     def test_locked_asset_not_logged_in(self):
         """
         Test that locked assets behave appropriately in case the user is not
