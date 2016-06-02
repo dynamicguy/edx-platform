@@ -7,8 +7,8 @@ XASSET_LOCATION_TAG = 'c4x'
 XASSET_SRCREF_PREFIX = 'xasset:'
 XASSET_THUMBNAIL_TAIL_NAME = '.jpg'
 STREAM_DATA_CHUNK_SIZE = 1024
-BASE_ASSET_PATH = '/assets/courseware'
-
+VERSIONED_ASSETS_PREFIX = '/assets/courseware'
+VERSIONED_ASSETS_PATTERN = r'/assets/courseware/([a-f0-9]{32})'
 
 import os
 import logging
@@ -43,6 +43,12 @@ class StaticContent(object):
     @property
     def is_thumbnail(self):
         return self.location.category == 'thumbnail'
+
+    def __str__(self):
+        return 'StaticContent(loc={}, name={}, type={}, length={}, locked={}, digest={})'.format(
+            self.location, self.name, self.content_type, self.length,
+            self.locked, self.content_digest
+        )
 
     @staticmethod
     def generate_thumbnail_name(original_name, dimensions=None):
@@ -143,6 +149,40 @@ class StaticContent(object):
                 return AssetKey.from_string(path[1:])
 
     @staticmethod
+    def is_versioned_asset_path(path):
+        """Determines whether the given asset path is versioned."""
+        return path.startswith(VERSIONED_ASSETS_PREFIX)
+
+    @staticmethod
+    def parse_versioned_asset_path(path):
+        """
+        Examines an asset path and breaks it apart if it is versioned,
+        returning both the asset digest and the unversioned asset path,
+        which will normally be an AssetKey.
+        """
+        asset_digest = None
+        asset_path = path
+        if StaticContent.is_versioned_asset_path(asset_path):
+            result = re.match(VERSIONED_ASSETS_PATTERN, asset_path)
+            if result is not None:
+                asset_digest = result.groups()[0]
+            asset_path = re.sub(VERSIONED_ASSETS_PATTERN, '', asset_path)
+
+        return (asset_digest, asset_path)
+
+    @staticmethod
+    def add_version_to_asset_path(path, version):
+        """
+        Adds a prefix to an asset path indicating the asset's version.
+        """
+
+        # Don't version an already-versioned path.
+        if StaticContent.is_versioned_asset_path(path):
+            return path
+
+        return VERSIONED_ASSETS_PREFIX + '/' + version + path
+
+    @staticmethod
     def get_asset_key_from_path(course_key, path):
         """
         Parses a path, extracting an asset key or creating one.
@@ -232,7 +272,7 @@ class StaticContent(object):
 
         # If the content has a digest (i.e. md5sum) value specified, create a versioned path to the asset using it.
         if content_digest:
-            asset_path = BASE_ASSET_PATH + '/' + content_digest + serialized_asset_key
+            asset_path = VERSIONED_ASSETS_PREFIX + '/' + content_digest + serialized_asset_key
 
         return urlunparse((None, base_url, asset_path, params, urlencode(updated_query_params), fragment))
 
@@ -288,8 +328,15 @@ class StaticContentStream(StaticContent):
         self._stream.seek(0)
         content = StaticContent(self.location, self.name, self.content_type, self._stream.read(),
                                 last_modified_at=self.last_modified_at, thumbnail_location=self.thumbnail_location,
-                                import_path=self.import_path, length=self.length, locked=self.locked)
+                                import_path=self.import_path, length=self.length, locked=self.locked,
+                                content_digest=self.content_digest)
         return content
+
+    def __str__(self):
+        return 'StaticContentStream(loc={}, name={}, type={}, length={}, locked={}, digest={})'.format(
+            self.location, self.name, self.content_type, self.length,
+            self.locked, self.content_digest
+        )
 
 
 class ContentStore(object):
