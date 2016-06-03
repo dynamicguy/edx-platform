@@ -26,10 +26,10 @@ class LearnerProfileTestMixin(EventsTestMixin):
     PRIVACY_PUBLIC = u'all_users'
     PRIVACY_PRIVATE = u'private'
 
-    PUBLIC_PROFILE_FIELDS = ['username', 'country', 'language_proficiencies', 'bio']
+    PUBLIC_PROFILE_FIELDS = ['username', 'bio', 'country', 'language_proficiencies']
     PRIVATE_PROFILE_FIELDS = ['username']
 
-    PUBLIC_PROFILE_EDITABLE_FIELDS = ['country', 'language_proficiencies', 'bio']
+    PUBLIC_PROFILE_EDITABLE_FIELDS = ['bio', 'country', 'language_proficiencies']
 
     USER_SETTINGS_CHANGED_EVENT_NAME = u"edx.user.settings.changed"
 
@@ -301,7 +301,6 @@ class OwnLearnerProfilePageTest(LearnerProfileTestMixin, WebAppTest):
         self.verify_profile_page_is_private(profile_page)
         self.verify_profile_page_view_event(username, user_id, visibility=self.PRIVACY_PRIVATE)
 
-    @flaky  # TODO fix this, see TNL-4683
     def test_fields_on_my_public_profile(self):
         """
         Scenario: Verify that desired fields are shown when looking at her own public profile.

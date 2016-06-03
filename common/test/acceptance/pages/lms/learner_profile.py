@@ -187,7 +187,7 @@ class LearnerProfilePage(FieldsMixin, PageObject):
         """
         self.wait_for_field('username')
 
-        fields = ['username', 'country', 'language_proficiencies', 'bio']
+        fields = ['username', 'bio', 'country', 'language_proficiencies']
         return [field for field in fields if self.field_is_visible(field)]
 
     @property
@@ -195,10 +195,9 @@ class LearnerProfilePage(FieldsMixin, PageObject):
         """
         Return list of editable fields currently shown on page.
         """
-        self.wait_for_ajax()
-        self.wait_for_element_visibility('.u-field-username', 'username is not visible')
+        self.wait_for_field('bio')
 
-        fields = ['country', 'language_proficiencies', 'bio']
+        fields = ['bio', 'country', 'language_proficiencies']
         return [field for field in fields if self.field_is_editable(field)]
 
     @property
