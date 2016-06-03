@@ -47,6 +47,8 @@ var edx = edx || {};
 
             this.renderCourseNamePlaceholder(this.courseKey);
 
+            this.renderUserFullNamePlaceholder(this.username);
+
             providerId = this.getCreditProviderId(data);
             if (providerId) {
                 this.getProviderData(providerId).then(this.renderProvider, this.renderError)
@@ -59,6 +61,12 @@ var edx = edx || {};
 
             this.getCourseData(courseId).then(function (responseData) {
                 $courseNamePlaceholder.text(responseData.name);
+            });
+        },
+        renderUserFullNamePlaceholder: function (username) {
+            var $userFullNamePlaceholder = $(".full_name_placeholder");
+            this.getUserData(username).then(function (userData) {
+                $userFullNamePlaceholder.text(userData.name);
             });
         },
         renderProvider: function (context) {
@@ -299,6 +307,19 @@ var edx = edx || {};
             }
 
             return null;
+        },
+        /**
+         * Retrieve user data from LMS.
+         * @param  {string} username The username of the user.
+         * @return {object} JQuery Promise.
+         */
+        getUserData: function (username) {
+            var userAPIUrl = '/api/user/v1/accounts/{username}';
+            return $.ajax({
+                url: edx.StringUtils.interpolate(userAPIUrl, {username: username}),
+                type: 'GET',
+                dataType: 'json'
+            });
         }
     });
 
