@@ -29,11 +29,23 @@
         <script type="text/template" id="${template_name}-tpl">
             <%static:include path="student_account/${template_name}.underscore" />
         </script>
-% endfor
+    % endfor
 </%block>
+
+%if logout:
+  <h3>You have been logged out.</h3>
+%endif
 
 <div class="section-bkg-wrapper">
     <main id="main" aria-label="Content" tabindex="-1">
-        <div id="login-and-registration-container" class="login-register" />
+        <div id="login-and-registration-container" class="login-register" ></div>
     </main>
 </div>
+
+%if logout:
+  <div style="visibility: hidden">
+    % for uri in logout_uris:
+      <iframe src="{{ uri }}"></iframe>
+    % endfor
+  </div>
+%endif

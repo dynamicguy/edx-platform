@@ -1,47 +1,69 @@
 """ Views for a student's account information. """
 
-import logging
 import json
+import logging
 import urlparse
 
+import edx_oauth2_provider
 from django.conf import settings
 from django.contrib import messages
+from django.contrib.auth import logout as auth_logout
 from django.contrib.auth.decorators import login_required
-from django.http import (
-    HttpResponse, HttpResponseBadRequest, HttpResponseForbidden
-)
-from django.shortcuts import redirect
-from django.http import HttpRequest
-from django_countries import countries
 from django.core.urlresolvers import reverse, resolve
+from django.http import HttpRequest
+from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseForbidden
+from django.shortcuts import redirect
 from django.utils.translation import ugettext as _
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.views.decorators.http import require_http_methods
+from django.views.generic import TemplateView
+from django_countries import countries
+from provider.oauth2.models import Client
 
-from lang_pref.api import released_languages, all_languages
-from edxmako.shortcuts import render_to_response
-
-from external_auth.login_and_register import (
-    login as external_auth_login,
-    register as external_auth_register
-)
-from student.models import UserProfile
-from student.views import (
-    signin_user as old_login_view,
-    register_user as old_register_view
-)
-from student.helpers import get_next_url_for_login_page
 import third_party_auth
+from edxmako.shortcuts import render_to_response
+from external_auth.login_and_register import login as external_auth_login, register as external_auth_register
+from lang_pref.api import released_languages, all_languages
+from openedx.core.djangoapps.theming.helpers import is_request_in_themed_site, get_value as get_themed_value
+from openedx.core.djangoapps.user_api.accounts.api import request_password_change
+from openedx.core.djangoapps.user_api.errors import UserNotFound
+from student.cookies import delete_logged_in_cookies
+from student.helpers import get_next_url_for_login_page
+from student.models import UserProfile
+from student.views import signin_user as old_login_view, register_user as old_register_view
 from third_party_auth import pipeline
 from third_party_auth.decorators import xframe_allow_whitelisted
 from util.bad_request_rate_limiter import BadRequestRateLimiter
 
-from openedx.core.djangoapps.theming.helpers import is_request_in_themed_site, get_value as get_themed_value
-from openedx.core.djangoapps.user_api.accounts.api import request_password_change
-from openedx.core.djangoapps.user_api.errors import UserNotFound
-
-
 AUDIT_LOG = logging.getLogger("audit")
+
+
+def get_login_context(request, initial_mode='login', login_redirect_url=None):
+    """ Returns the basic context necessary for the login page."""
+
+    # Retrieve the form descriptions from the user API
+    form_descriptions = _get_form_descriptions(request)
+
+    return {
+        'data': {
+            'login_redirect_url': login_redirect_url,
+            'initial_mode': initial_mode,
+            'platform_name': get_themed_value('PLATFORM_NAME', settings.PLATFORM_NAME),
+
+            # Include form descriptions retrieved from the user API.
+            # We could have the JS client make these requests directly,
+            # but we include them in the initial page load to avoid
+            # the additional round-trip to the server.
+            'login_form_desc': json.loads(form_descriptions['login']),
+            'registration_form_desc': json.loads(form_descriptions['registration']),
+            'password_reset_form_desc': json.loads(form_descriptions['password_reset']),
+        },
+        'login_redirect_url': login_redirect_url,
+        'responsive': True,
+        'allow_iframing': True,
+        'disable_courseware_js': True,
+        'disable_footer': True,
+    }
 
 
 @require_http_methods(['GET'])
@@ -63,9 +85,6 @@ def login_and_registration_form(request, initial_mode="login"):
     # If we're already logged in, redirect to the dashboard
     if request.user.is_authenticated():
         return redirect(redirect_to)
-
-    # Retrieve the form descriptions from the user API
-    form_descriptions = _get_form_descriptions(request)
 
     # If this is a themed site, revert to the old login/registration pages.
     # We need to do this for now to support existing themes.
@@ -97,28 +116,11 @@ def login_and_registration_form(request, initial_mode="login"):
             pass
 
     # Otherwise, render the combined login/registration page
-    context = {
-        'data': {
-            'login_redirect_url': redirect_to,
-            'initial_mode': initial_mode,
-            'third_party_auth': _third_party_auth_context(request, redirect_to),
-            'third_party_auth_hint': third_party_auth_hint or '',
-            'platform_name': get_themed_value('PLATFORM_NAME', settings.PLATFORM_NAME),
-
-            # Include form descriptions retrieved from the user API.
-            # We could have the JS client make these requests directly,
-            # but we include them in the initial page load to avoid
-            # the additional round-trip to the server.
-            'login_form_desc': json.loads(form_descriptions['login']),
-            'registration_form_desc': json.loads(form_descriptions['registration']),
-            'password_reset_form_desc': json.loads(form_descriptions['password_reset']),
-        },
-        'login_redirect_url': redirect_to,  # This gets added to the query string of the "Sign In" button in header
-        'responsive': True,
-        'allow_iframing': True,
-        'disable_courseware_js': True,
-        'disable_footer': True,
-    }
+    context = get_login_context(request, initial_mode=initial_mode, login_redirect_url=redirect_to)
+    context['data'].update({
+        'third_party_auth': _third_party_auth_context(request, redirect_to),
+        'third_party_auth_hint': third_party_auth_hint or '',
+    })
 
     return render_to_response('student_account/login_and_register.html', context)
 
@@ -422,3 +424,50 @@ def account_settings_context(request):
         } for state in auth_states]
 
     return context
+
+
+class LogoutView(TemplateView):
+    """
+    Logs out user and redirects.
+
+    The template should load iframes to log the user out of OpenID Connect services.
+    See http://openid.net/specs/openid-connect-logout-1_0.html.
+    """
+    template_name = 'student_account/login_and_register.html'
+    oauth_client_ids = []
+
+    def dispatch(self, request, *args, **kwargs):
+        # We do not log here, because we have a handler registered to perform logging on successful logouts.
+        request.is_from_logout = True
+
+        # Get the list of authorized clients before we clear the session.
+        self.oauth_client_ids = request.session.get(edx_oauth2_provider.constants.AUTHORIZED_CLIENTS_SESSION_KEY, [])
+
+        auth_logout(request)
+        response = super(LogoutView, self).dispatch(request, *args, **kwargs)
+
+        # Clear the cookie used by the edx.org marketing site
+        delete_logged_in_cookies(response)
+
+        return response
+
+    def get_context_data(self, **kwargs):
+        context = super(LogoutView, self).get_context_data(**kwargs)
+        target = reverse('cas-logout') if settings.FEATURES.get('AUTH_USE_CAS') else '/'
+
+        # The login page doubles as our logout page. If we are using other services, we need
+        # to keep track of which services to logout of.
+        logout_uris = Client.objects.filter(client_id__in=self.oauth_client_ids,
+                                            logout_uri__isnull=False).values_list('logout_uri', flat=True)
+
+        context.update(get_login_context(self.request))
+        context.update({
+            'target': target,
+            'logout_uris': list(logout_uris),
+            'logout': True,
+        })
+
+        return context
+
+    def render_to_response(self, context, **response_kwargs):
+        return render_to_response(self.template_name, context)

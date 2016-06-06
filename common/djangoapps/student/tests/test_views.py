@@ -1,19 +1,22 @@
 """
 Test the student dashboard view.
 """
-import ddt
 import unittest
+
+import ddt
+from django.conf import settings
+from django.core.urlresolvers import reverse
+from django.test import TestCase
 from mock import patch
 from pyquery import PyQuery as pq
-
-from django.core.urlresolvers import reverse
-from django.conf import settings
-
-from student.tests.factories import UserFactory, CourseEnrollmentFactory
-from student.models import CourseEnrollment
-from student.helpers import DISABLE_UNENROLL_CERT_STATES
 from xmodule.modulestore.tests.django_utils import SharedModuleStoreTestCase
 from xmodule.modulestore.tests.factories import CourseFactory
+
+from student.helpers import DISABLE_UNENROLL_CERT_STATES
+from student.models import CourseEnrollment
+from student.tests.factories import UserFactory, CourseEnrollmentFactory
+
+PASSWORD = 'test'
 
 
 @ddt.ddt
@@ -22,9 +25,6 @@ class TestStudentDashboardUnenrollments(SharedModuleStoreTestCase):
     """
     Test to ensure that the student dashboard does not show the unenroll button for users with certificates.
     """
-    USERNAME = "Bob"
-    EMAIL = "bob@example.com"
-    PASSWORD = "edx"
     UNENROLL_ELEMENT_ID = "#actions-item-unenroll-0"
 
     @classmethod
@@ -35,10 +35,10 @@ class TestStudentDashboardUnenrollments(SharedModuleStoreTestCase):
     def setUp(self):
         """ Create a course and user, then log in. """
         super(TestStudentDashboardUnenrollments, self).setUp()
-        self.user = UserFactory.create(username=self.USERNAME, email=self.EMAIL, password=self.PASSWORD)
+        self.user = UserFactory()
         CourseEnrollmentFactory(course_id=self.course.id, user=self.user)
         self.cert_status = None
-        self.client.login(username=self.USERNAME, password=self.PASSWORD)
+        self.client.login(username=self.user.username, password=PASSWORD)
 
     def mock_cert(self, _user, _course_overview, _course_mode):
         """ Return a preset certificate status. """
@@ -107,3 +107,20 @@ class TestStudentDashboardUnenrollments(SharedModuleStoreTestCase):
             response = self.client.get(reverse('dashboard'))
 
             self.assertEqual(response.status_code, 200)
+
+
+@unittest.skipUnless(settings.ROOT_URLCONF == 'lms.urls', 'Test only valid in lms')
+class LogoutTests(TestCase):
+    """ Tests for the logout functionality. """
+
+    def test_without_session_value(self):
+        """ Verify logout works even if the session does not contain an entry with
+        the authenticated OpenID Connect clients."""
+        self.fail()
+
+    def test_client_logout(self):
+        """ Verify the context includes a list of the logout URIs of the authenticated OpenID Connect clients.
+
+        The list should only include URIs of the clients for which the user has been authenticated.
+        """
+        self.fail()

@@ -731,7 +731,7 @@ def dashboard(request):
         'denied_banner': denied_banner,
         'billing_email': settings.PAYMENT_SUPPORT_EMAIL,
         'user': user,
-        'logout_url': reverse(logout_user),
+        'logout_url': reverse('logout'),
         'platform_name': platform_name,
         'enrolled_courses_either_paid': enrolled_courses_either_paid,
         'provider_states': [],
@@ -1353,27 +1353,6 @@ def login_oauth_token(request, backend):
         else:
             return JsonResponse({"error": "invalid_request"}, status=400)
     raise Http404
-
-
-@ensure_csrf_cookie
-def logout_user(request):
-    """
-    HTTP request to log out the user. Redirects to marketing page.
-    Deletes both the CSRF and sessionid cookies so the marketing
-    site can determine the logged in state of the user
-    """
-    # We do not log here, because we have a handler registered
-    # to perform logging on successful logouts.
-    request.is_from_logout = True
-    logout(request)
-    if settings.FEATURES.get('AUTH_USE_CAS'):
-        target = reverse('cas-logout')
-    else:
-        target = '/'
-    response = redirect(target)
-
-    delete_logged_in_cookies(response)
-    return response
 
 
 @require_GET
