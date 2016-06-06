@@ -13,6 +13,7 @@ from opaque_keys.edx.locator import CourseLocator
 from config_models.models import cache
 from course_modes.models import CourseMode
 from course_modes.tests.factories import CourseModeFactory
+from courseware.tests.factories import GlobalStaffFactory
 from microsite_configuration import microsite
 from student.models import CourseEnrollment
 from student.tests.factories import UserFactory
@@ -27,12 +28,16 @@ from certificates import api as certs_api
 from certificates.models import (
     CertificateStatuses,
     CertificateGenerationConfiguration,
+    CertificateInvalidation,
     ExampleCertificate,
     GeneratedCertificate,
     certificate_status_for_student,
 )
 from certificates.queue import XQueueCertInterface, XQueueAddToQueueError
-from certificates.tests.factories import GeneratedCertificateFactory
+from certificates.tests.factories import (
+    CertificateInvalidationFactory,
+    GeneratedCertificateFactory
+)
 
 
 FEATURES_WITH_CERTS_ENABLED = settings.FEATURES.copy()
@@ -89,6 +94,7 @@ class WebCertificateTestMixin(object):
 
 
 @attr('shard_1')
+@ddt.ddt
 class CertificateDownloadableStatusTests(WebCertificateTestMixin, ModuleStoreTestCase):
     """Tests for the `certificate_downloadable_status` helper function. """
 
@@ -104,6 +110,7 @@ class CertificateDownloadableStatusTests(WebCertificateTestMixin, ModuleStoreTes
         )
 
         self.request_factory = RequestFactory()
+        self.global_staff = GlobalStaffFactory()
 
     def test_cert_status_with_generating(self):
         GeneratedCertificateFactory.create(
@@ -120,6 +127,7 @@ class CertificateDownloadableStatusTests(WebCertificateTestMixin, ModuleStoreTes
                 'is_unverified': False,
                 'download_url': None,
                 'uuid': None,
+                'is_invalid_cert': False,
             }
         )
 
@@ -138,7 +146,8 @@ class CertificateDownloadableStatusTests(WebCertificateTestMixin, ModuleStoreTes
                 'is_generating': True,
                 'is_unverified': False,
                 'download_url': None,
-                'uuid': None
+                'uuid': None,
+                'is_invalid_cert': False
             }
         )
 
@@ -151,6 +160,7 @@ class CertificateDownloadableStatusTests(WebCertificateTestMixin, ModuleStoreTes
                 'is_unverified': False,
                 'download_url': None,
                 'uuid': None,
+                'is_invalid_cert': False,
             }
         )
 
@@ -174,7 +184,8 @@ class CertificateDownloadableStatusTests(WebCertificateTestMixin, ModuleStoreTes
                 'is_generating': False,
                 'is_unverified': False,
                 'download_url': 'www.google.com',
-                'uuid': cert.verify_uuid
+                'uuid': cert.verify_uuid,
+                'is_invalid_cert': False
             }
         )
 
@@ -203,7 +214,97 @@ class CertificateDownloadableStatusTests(WebCertificateTestMixin, ModuleStoreTes
                     user_id=self.student.id,  # pylint: disable=no-member
                     course_id=self.course.id,
                 ),
-                'uuid': cert_status['uuid']
+                'uuid': cert_status['uuid'],
+                'is_invalid_cert': False
+            }
+        )
+
+    @ddt.data(
+        CertificateStatuses.generating,
+        CertificateStatuses.downloadable,
+        CertificateStatuses.notpassing,
+        CertificateStatuses.error,
+        CertificateStatuses.unverified,
+        CertificateStatuses.deleted
+    )
+    def test_api_does_not_called_method(self, status):
+        """ Verify that method 'is_certificate_invalid' will not be called for
+        all statues except 'un-available'. """
+        GeneratedCertificateFactory.create(
+            user=self.student,
+            course_id=self.course.id,
+            status=status,
+            mode='verified'
+        )
+        with patch.object(CertificateInvalidation, 'is_certificate_invalid') as mock_method:
+            mock_method.return_value = False
+            certs_api.certificate_downloadable_status(self.student, self.course.id)
+
+        self.assertFalse(mock_method.called)
+
+    def test_api_called_method(self):
+        """ Verify that method 'is_certificate_invalid' method will be called if certificate
+        status is 'un-available'. """
+        GeneratedCertificateFactory.create(
+            user=self.student,
+            course_id=self.course.id,
+            status=CertificateStatuses.unavailable,
+            mode='verified'
+        )
+        with patch.object(CertificateInvalidation, 'is_certificate_invalid') as mock_method:
+            mock_method.return_value = True
+            self._assert_api_response(False, False, False, None, None, True)
+
+        mock_method.assert_called_once_with(self.course.id, self.student)
+
+    def test_api_respone_with_invalidated_cert(self):
+        """ Verify that if certificate is marked as invalid than method return
+        is_invalidated as True. """
+        generated_cert = GeneratedCertificateFactory.create(
+            user=self.student,
+            course_id=self.course.id,
+            status=CertificateStatuses.downloadable,
+            mode='verified'
+        )
+
+        self._invalidate_certificate(generated_cert, True)
+        self._assert_api_response(False, False, False, None, None, True)
+
+    def test_api_respone_with_inactive_invalidated_cert(self):
+        """ Verify that if certificate is marked as invalid but it's status is
+        false than is_invalidated will be false. """
+        generated_cert = GeneratedCertificateFactory.create(
+            user=self.student,
+            course_id=self.course.id,
+            status=CertificateStatuses.downloadable,
+            mode='verified'
+        )
+
+        self._invalidate_certificate(generated_cert, False)
+        self._assert_api_response(False, False, False, None, None, False)
+
+    def _invalidate_certificate(self, certificate, active):
+        """ Dry method to mark certificate as invalid. """
+        CertificateInvalidationFactory.create(
+            generated_certificate=certificate,
+            invalidated_by=self.global_staff,
+            active=active
+        )
+        # Invalidate user certificate
+        certificate.invalidate()
+        self.assertFalse(certificate.is_valid())
+
+    def _assert_api_response(self, downloadable, generating, unverified, url, uuid, invalid):
+        """ Dry method to assert api response. """
+        self.assertEqual(
+            certs_api.certificate_downloadable_status(self.student, self.course.id),
+            {
+                'is_downloadable': downloadable,
+                'is_generating': generating,
+                'is_unverified': unverified,
+                'download_url': url,
+                'uuid': uuid,
+                'is_invalid_cert': invalid
             }
         )
 

@@ -21,6 +21,7 @@ from util.organizations_helpers import get_course_organizations
 from certificates.models import (
     CertificateGenerationConfiguration,
     CertificateGenerationCourseSetting,
+    CertificateInvalidation,
     CertificateStatuses,
     CertificateTemplate,
     CertificateTemplateAsset,
@@ -228,7 +229,12 @@ def certificate_downloadable_status(student, course_key):
         'is_unverified': True if current_status['status'] == CertificateStatuses.unverified else False,
         'download_url': None,
         'uuid': None,
+        'is_invalid_cert': False,
     }
+
+    if current_status['status'] == CertificateStatuses.unavailable:
+        # in case of status 'un-available', check that if this certificate is invalidated
+        response_data['is_invalid_cert'] = CertificateInvalidation.is_certificate_invalid(course_key, student)
 
     if current_status['status'] == CertificateStatuses.downloadable:
         response_data['is_downloadable'] = True

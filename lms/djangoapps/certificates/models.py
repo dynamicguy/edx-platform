@@ -436,6 +436,23 @@ class CertificateInvalidation(TimeStampedModel):
             })
         return data
 
+    @classmethod
+    def is_certificate_invalid(cls, course_key, student):
+        """Check that certificate for a student is invalidated or not.
+
+        Arguments:
+            course_key (CourseKey): The course associated with the certificate.
+            student (user): logged-in user
+
+        Returns:
+             Boolean denoting whether certificate is invalid or valid.
+        """
+        return cls.objects.filter(
+            generated_certificate__course_id=course_key,
+            active=True,
+            generated_certificate__user=student
+        ).exists()
+
 
 @receiver(COURSE_CERT_AWARDED, sender=GeneratedCertificate)
 def handle_course_cert_awarded(sender, user, course_key, **kwargs):  # pylint: disable=unused-argument

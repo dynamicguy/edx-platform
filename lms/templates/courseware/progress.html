@@ -48,7 +48,7 @@ from django.utils.http import urlquote_plus
             <h1 class="progress-certificates-title">${_("Course Progress for Student '{username}' ({email})").format(username=student.username, email=student.email) | h}</h1>
           </header>
 
-          %if show_generate_cert_btn:
+          %if show_generate_cert_btn and not is_invalid_cert:
           <div class="wrapper-msg wrapper-auto-cert">
             <div id="errors-info" class="errors-info"></div>
             %if passed:
@@ -100,6 +100,18 @@ from django.utils.http import urlquote_plus
             </div>
             %endif
           </div>
+          %endif
+
+          %if is_invalid_cert:
+            <div class="wrapper-msg wrapper-auto-cert">
+                    <div class="auto-cert-message">
+                      <div class="has-actions">
+                          <div class="msg-content">
+                            <p class="copy">${_("Your certificate has been invalidated. Please contact your course team if you have a question.")}</p>
+                          </div>
+                      </div>
+                </div>
+            </div>
           %endif
 
           %if not course.disable_progress_graph:
