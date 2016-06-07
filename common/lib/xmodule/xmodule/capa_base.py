@@ -659,7 +659,7 @@ class CapaMixin(CapaFields):
             check_button_checking = False
 
         content = {
-            'name': self.display_name.strip() or self.location.block_type,
+            'name': self.display_name_with_default,
             'html': html,
             'weight': self.weight,
         }
