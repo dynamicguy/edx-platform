@@ -1337,7 +1337,7 @@ def financial_assistance_form(request):
                 'name': 'income',
                 'type': 'select',
                 'label': FA_INCOME_LABEL,
-                'placeholder': _('income in US Dollars ($)'),
+                'placeholder': '',
                 'defaultValue': '',
                 'required': True,
                 'options': annual_incomes,
