@@ -1406,8 +1406,12 @@ class ProgressPageTests(ModuleStoreTestCase):
         ) as user_verify:
             user_verify.return_value = user_verified
             resp = views.progress(self.request, course_id=unicode(self.course.id))
+
+            show_cert_button = course_mode is not CourseMode.AUDIT and \
+                (user_verified or not CourseMode.has_verified_mode(course_mode))
+
             self.assertEqual(
-                course_mode is not CourseMode.AUDIT and user_verified,
+                show_cert_button,
                 'Request Certificate' in resp.content)
 
 
