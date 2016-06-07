@@ -1298,6 +1298,13 @@ def financial_assistance_form(request):
             mode_slug=CourseMode.VERIFIED
         ).exists()
     ]
+    annual_incomes = [
+        {'name': 'Less than $5,000', 'value': 'Less than $5,000'},
+        {'name': '$5,000 - $10,000', 'value': '$5,000 - $10,000'},
+        {'name': '$10,000 - $15,000', 'value': '$10,000 - $15,000'},
+        {'name': '$15,000 - $20,000', 'value': '$15,000 - $20,000'},
+        {'name': '$20,000 - $25,000', 'value': '$20,000 - $25,000'}
+    ]
     return render_to_response('financial-assistance/apply.html', {
         'header_text': FINANCIAL_ASSISTANCE_HEADER,
         'student_faq_url': marketing_link('FAQ'),
@@ -1328,12 +1335,12 @@ def financial_assistance_form(request):
             },
             {
                 'name': 'income',
-                'type': 'text',
+                'type': 'select',
                 'label': FA_INCOME_LABEL,
                 'placeholder': _('income in US Dollars ($)'),
                 'defaultValue': '',
                 'required': True,
-                'restrictions': {},
+                'options': annual_incomes,
                 'instructions': _('Specify your annual household income in US Dollars.')
             },
             {

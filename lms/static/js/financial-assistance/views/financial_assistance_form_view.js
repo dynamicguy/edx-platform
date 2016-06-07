@@ -46,6 +46,13 @@
                             default: true
                         });
                     }
+                    if ( fields[1].options.length > 1 ) {
+                        fields[1].options.unshift({
+                            name: '- ' + gettext('Choose one') + ' -',
+                            value: '',
+                            default: true
+                        });
+                    }
 
                     // Set non-form data needed to render the View
                     this.context = {
