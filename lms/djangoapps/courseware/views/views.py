@@ -1299,7 +1299,7 @@ def financial_assistance_form(request):
         ).exists()
     ]
     annual_incomes = [
-        {'name': 'Less than $5,000', 'value': 'Less than $5,000'},
+        {'name': _('Less than $5,000'), 'value': 'Less than $5,000'},
         {'name': '$5,000 - $10,000', 'value': '$5,000 - $10,000'},
         {'name': '$10,000 - $15,000', 'value': '$10,000 - $15,000'},
         {'name': '$15,000 - $20,000', 'value': '$15,000 - $20,000'},

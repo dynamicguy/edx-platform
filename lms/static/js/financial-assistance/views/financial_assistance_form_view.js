@@ -38,7 +38,7 @@
                     var context = data.context,
                         fields = context.fields;
 
-                    // Add default option to array
+                    // Add default option to course array
                     if ( fields[0].options.length > 1 ) {
                         fields[0].options.unshift({
                             name: '- ' + gettext('Choose one') + ' -',
@@ -46,6 +46,7 @@
                             default: true
                         });
                     }
+                    // Add default option to household income array
                     if ( fields[1].options.length > 1 ) {
                         fields[1].options.unshift({
                             name: '- ' + gettext('Choose one') + ' -',
