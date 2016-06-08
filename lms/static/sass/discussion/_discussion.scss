@@ -10,7 +10,7 @@ body.discussion {
     width: 100%;
 
     h1 {
-      font-size: 20px;
+      font-size: $forum-x-large-font-size;
     }
 
     .form-row {
@@ -19,13 +19,13 @@ body.discussion {
 
     .post-cancel {
       @include white-button;
-      float: left;
+      @include float(left);
       margin: ($baseline/2) 0 0 ($baseline*0.75);
     }
 
     .post-update {
       @include blue-button;
-      float: left;
+      @include float(left);
       margin-top: ($baseline/2);
       padding-bottom: ($baseline/10);
       height: 37px;
@@ -44,13 +44,13 @@ body.discussion {
       height: 40px;
       box-shadow: 0 1px 3px $shadow-l1 inset;
       color: $dark-gray;
-      font-size: 16px;
+      font-size: $forum-large-font-size;
       font-family: $sans-serif;
     }
   }
 
   .comments .edit-post-form h1 {
-    @extend %t-title6;
+    font-size: $forum-large-font-size;
   }
 
   .thread-title {
@@ -58,7 +58,7 @@ body.discussion {
     margin-bottom: $baseline;
     color: $gray-d3;
     font-weight: 700;
-    font-size: 21px;
+    font-size: $forum-x-large-font-size;
   }
 
   .wmd-panel {
@@ -77,7 +77,7 @@ body.discussion {
     height: 150px;
     background-color: $gray-l4;
     font-style: normal;
-    font-size: 0.8em;
+    font-size: $forum-base-font-size;
     font-family: $f-sans-serif;
     line-height: 1.6em;
 
@@ -149,12 +149,12 @@ body.discussion {
     padding: $baseline;
 
     > div {
-      font-size: 0.8em;
+      font-size: $forum-base-font-size;
       font-family: $sans-serif;
     }
 
     b {
-      font-size: 16px;
+      font-size: $forum-large-font-size;
     }
 
     > form > input[type="text"] {
@@ -164,7 +164,7 @@ body.discussion {
 
     > form > input[type="button"] {
       border: 1px solid #888;
-      font-size: 14px;
+      font-size: $forum-base-font-size;
       font-family: $sans-serif;
     }
 
@@ -184,7 +184,7 @@ body.discussion {
 
   .bottom-post-status {
     padding: 30px;
-    font-size: 20px;
+    font-size: $forum-x-large-font-size;
     font-weight: 700;
     color: $gray-l3;
     text-align: center;
@@ -212,7 +212,7 @@ body.discussion {
     background: $gray-l5;
     border-radius: 3px;
     padding: ($baseline/4) ($baseline/2);
-    font-size: 14px;
+    font-size: $forum-base-font-size;
   }
 
   .comment-form {
@@ -257,7 +257,7 @@ body.discussion {
     padding: 0 ($baseline/2);
 
     h4 {
-      font-size: 16px;
+      font-size: $forum-large-font-size;
       font-weight: 700;
     }
   }
@@ -310,7 +310,7 @@ body.discussion {
 
   header {
     .anonymous{
-      font-size: 15px;
+      font-size: $forum-base-font-size;
     }
   }
 
@@ -332,7 +332,7 @@ body.discussion {
   .discussion-show {
     position: relative;
     top: 3px;
-    font-size: 14px;
+    font-size: $forum-base-font-size;
     text-align: center;
 
     &.shown {
@@ -371,7 +371,7 @@ body.discussion {
     .thread-title {
       display: block;
       margin-bottom: $baseline;
-      font-size: 21px;
+      font-size: $forum-x-large-font-size;
       color: $gray-d3;
       font-weight: 700;
     }
@@ -381,7 +381,7 @@ body.discussion {
     margin-top: ($baseline*1.5);
 
     nav.discussion-paginator {
-      float: right;
+      @include float(right);
 
       ol {
         li {
@@ -397,7 +397,7 @@ body.discussion {
             padding: 0 ($baseline*0.75);
             border: 1px solid $forum-color-border;
             border-radius: 3px;
-            font-size: 13px;
+            font-size: $forum-base-font-size;
             font-weight: 700;
             line-height: 32px;
             color: $gray-d3;
@@ -420,13 +420,13 @@ body.discussion {
 
     .post-cancel {
       @include white-button;
-      float: left;
-      margin: ($baseline/2) 0 0 ($baseline*0.75);
+      @include float(left);
+      @include margin($baseline/2, 0, 0, $baseline*0.75);
     }
 
     .post-update {
       @include blue-button;
-      float: left;
+      @include float(left);
       height: 37px;
       margin-top: ($baseline/2);
       padding-bottom: 2px;
@@ -443,7 +443,7 @@ body.discussion {
       box-sizing: border-box;
       border-radius: 3px;
       border: 1px solid $forum-color-border;
-      font-size: 16px;
+      font-size: $forum-large-font-size;
       font-family: $sans-serif;
       color: $gray-d3;
       box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15) inset;
@@ -474,7 +474,7 @@ body.discussion {
     display: block;
     padding: ($baseline/2) 0;
     color: $gray;
-    font-size: 14px;
+    font-size: $forum-base-font-size;
   }
 
   .load-response-button {

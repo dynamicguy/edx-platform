@@ -103,11 +103,11 @@
     color: $gray-l1;
 
     .action-icon {
-      @extend %t-icon7;
       display: inline-block;
+      font-size: $forum-small-font-size;
       height: $baseline;
       width: $baseline;
-      border: 1px solid $gray-l3;
+      border: 1px solid $forum-color-border;
       border-radius: 3px;
       text-align: center;
       color: $gray-l1;
@@ -265,9 +265,9 @@
       }
 
       .action-icon {
+        @include margin-left($baseline/4);
         display: inline-block;
         width: ($baseline/2);
-        margin-left: ($baseline/4);
         color: inherit;
       }
 

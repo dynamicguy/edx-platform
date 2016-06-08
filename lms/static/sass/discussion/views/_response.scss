@@ -48,8 +48,8 @@
 
     // CASE: larger username for responses 
     .username {
-      @include font-size(14);
       @extend %t-weight5;
+      font-size: $forum-base-font-size;
     }
   }
 
@@ -68,7 +68,7 @@
 
 // +CASE: answered question - collapsed comments in answers
 .forum-response .action-show-comments {
-  @include font-size(13);
+  font-size: $forum-base-font-size;
   box-sizing: border-box;
   display: block;
   padding: ($baseline/2) $baseline;
@@ -104,7 +104,7 @@
     box-sizing: border-box;
     border-radius: 2px 2px 0 0;
     background: #009fe2;
-    font-size: 9px;
+    font-size: $forum-small-font-size;
     font-weight: 700;
     color: $white;
   }
@@ -120,7 +120,7 @@
     box-sizing: border-box;
     border-radius: 2px 2px 0 0;
     background: $forum-color-community-ta;
-    font-size: 9px;
+    font-size: $forum-small-font-size;
     font-weight: 700;
     color: $white;
   }
@@ -151,7 +151,7 @@
     background: $gray-l4;
     border-radius: 3px;
     padding: ($baseline/4) ($baseline/2);
-    font-size: 14px;
+    font-size: $forum-base-font-size;
   }
 
   .comment-form {
@@ -160,12 +160,12 @@
     .comment-form-input {
       padding: ($baseline/4) ($baseline/2);
       background-color: $forum-color-background;
-      font-size: 14px;
+      font-size: $forum-base-font-size;
     }
 
     .discussion-submit-comment {
       @include blue-button;
-      float: left;
+      @include float(left);
       margin-top: 8px;
     }
 
