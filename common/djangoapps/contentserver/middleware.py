@@ -54,7 +54,6 @@ class StaticContentServer(object):
             # If this is a versioned request, pull out the digest and chop off the prefix.
             requested_digest = None
             if StaticContent.is_versioned_asset_path(asset_path):
-                print asset_path
                 requested_digest, asset_path = StaticContent.parse_versioned_asset_path(asset_path)
 
             # Make sure we have a valid location value for this asset.
@@ -69,13 +68,8 @@ class StaticContentServer(object):
             try:
                 content = self.load_asset_from_location(loc)
                 actual_digest = content.content_digest
-                print content
             except (ItemNotFoundError, NotFoundError):
                 return HttpResponseNotFound()
-
-            print loc
-            print requested_digest
-            print actual_digest
 
             # If this was a versioned asset, and the digest doesn't match, redirect
             # them to the actual version.

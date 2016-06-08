@@ -271,8 +271,8 @@ class StaticContent(object):
         asset_path = serialized_asset_key
 
         # If the content has a digest (i.e. md5sum) value specified, create a versioned path to the asset using it.
-        if content_digest:
-            asset_path = VERSIONED_ASSETS_PREFIX + '/' + content_digest + serialized_asset_key
+        if serve_from_cdn and content_digest:
+            asset_path = StaticContent.add_version_to_asset_path(serialized_asset_key, content_digest)
 
         return urlunparse((None, base_url, asset_path, params, urlencode(updated_query_params), fragment))
 

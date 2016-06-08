@@ -126,7 +126,7 @@ class BasicAssetsTestCase(AssetsTestCase):
             )
             course = module_store.get_course(course_id)
 
-            filename = 'sample_static.txt'
+            filename = 'sample_static.html'
             html_src_attribute = '"/static/{}"'.format(filename)
             asset_url = replace_static_urls(html_src_attribute, course_id=course.id)
             url = asset_url.replace('"', '')

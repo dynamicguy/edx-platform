@@ -8,7 +8,6 @@ import ddt
 import logging
 import unittest
 from uuid import uuid4
-import md5
 
 from django.conf import settings
 from django.test import RequestFactory
@@ -39,6 +38,9 @@ FAKE_MD5_HASH = 'ffffffffffffffffffffffffffffffff'
 
 
 def get_versioned_asset_url(asset_path):
+    """
+    Creates a versioned asset URL.
+    """
     try:
         locator = StaticContent.get_location_from_path(asset_path)
         content = AssetManager.find(locator, as_stream=True)
@@ -118,7 +120,7 @@ class ContentStoreToyCourseTest(SharedModuleStoreTestCase):
         self.client.logout()
         resp = self.client.get(url_unlocked_versioned_old)
         self.assertEqual(resp.status_code, 301)
-        self.assertTrue(resp.url.endswith(self.url_unlocked_versioned))
+        self.assertTrue(resp.url.endswith(self.url_unlocked_versioned))  # pylint: disable=no-member
 
     def test_locked_versioned_asset(self):
         """
