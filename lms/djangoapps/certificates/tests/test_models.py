@@ -316,22 +316,22 @@ class CertificateInvalidationTest(SharedModuleStoreTestCase):
         super(CertificateInvalidationTest, self).setUp()
         self.course = CourseFactory()
         self.user = UserFactory()
-        self.course_id=self.course.id  # pylint: disable=no-member
+        self.course_id = self.course.id  # pylint: disable=no-member
         self.certificate = GeneratedCertificateFactory.create(
             status=CertificateStatuses.downloadable,
             user=self.user,
-            course_id= self.course_id
+            course_id=self.course_id
         )
 
     def test_is_certificate_invalid_method(self):
-        """ Verify that method return the false if certificate is valid. """
+        """ Verify that method return false if certificate is valid. """
 
         self.assertFalse(
-            CertificateInvalidation.is_certificate_invalid(self.course.id, self.user)
+            CertificateInvalidation.is_certificate_invalid(self.course_id, self.user)
         )
 
     def test_is_certificate_invalid_with_invalid_cert(self):
-        """ Verify that method return the True if certificate is invalid. """
+        """ Verify that method return true if certificate is invalid. """
 
         invalid_cert = CertificateInvalidationFactory.create(
             generated_certificate=self.certificate,

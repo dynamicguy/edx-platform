@@ -10,20 +10,6 @@ from mock import patch
 from nose.plugins.attrib import attr
 from opaque_keys.edx.locator import CourseLocator
 
-from config_models.models import cache
-from course_modes.models import CourseMode
-from course_modes.tests.factories import CourseModeFactory
-from courseware.tests.factories import GlobalStaffFactory
-from microsite_configuration import microsite
-from student.models import CourseEnrollment
-from student.tests.factories import UserFactory
-from util.testing import EventTestMixin
-from xmodule.modulestore.tests.factories import CourseFactory
-from xmodule.modulestore.tests.django_utils import (
-    ModuleStoreTestCase,
-    SharedModuleStoreTestCase,
-)
-
 from certificates import api as certs_api
 from certificates.models import (
     CertificateStatuses,
@@ -37,6 +23,19 @@ from certificates.queue import XQueueCertInterface, XQueueAddToQueueError
 from certificates.tests.factories import (
     CertificateInvalidationFactory,
     GeneratedCertificateFactory
+)
+from config_models.models import cache
+from course_modes.models import CourseMode
+from course_modes.tests.factories import CourseModeFactory
+from courseware.tests.factories import GlobalStaffFactory
+from microsite_configuration import microsite
+from student.models import CourseEnrollment
+from student.tests.factories import UserFactory
+from util.testing import EventTestMixin
+from xmodule.modulestore.tests.factories import CourseFactory
+from xmodule.modulestore.tests.django_utils import (
+    ModuleStoreTestCase,
+    SharedModuleStoreTestCase,
 )
 
 
@@ -110,7 +109,6 @@ class CertificateDownloadableStatusTests(WebCertificateTestMixin, ModuleStoreTes
         )
 
         self.request_factory = RequestFactory()
-        self.global_staff = GlobalStaffFactory()
 
     def test_cert_status_with_generating(self):
         GeneratedCertificateFactory.create(
@@ -147,7 +145,7 @@ class CertificateDownloadableStatusTests(WebCertificateTestMixin, ModuleStoreTes
                 'is_unverified': False,
                 'download_url': None,
                 'uuid': None,
-                'is_invalid_cert': False
+                'is_invalid_cert': False,
             }
         )
 
@@ -185,7 +183,7 @@ class CertificateDownloadableStatusTests(WebCertificateTestMixin, ModuleStoreTes
                 'is_unverified': False,
                 'download_url': 'www.google.com',
                 'uuid': cert.verify_uuid,
-                'is_invalid_cert': False
+                'is_invalid_cert': False,
             }
         )
 
@@ -215,7 +213,7 @@ class CertificateDownloadableStatusTests(WebCertificateTestMixin, ModuleStoreTes
                     course_id=self.course.id,
                 ),
                 'uuid': cert_status['uuid'],
-                'is_invalid_cert': False
+                'is_invalid_cert': False,
             }
         )
 
@@ -285,9 +283,10 @@ class CertificateDownloadableStatusTests(WebCertificateTestMixin, ModuleStoreTes
 
     def _invalidate_certificate(self, certificate, active):
         """ Dry method to mark certificate as invalid. """
+        global_staff = GlobalStaffFactory()
         CertificateInvalidationFactory.create(
             generated_certificate=certificate,
-            invalidated_by=self.global_staff,
+            invalidated_by=global_staff,
             active=active
         )
         # Invalidate user certificate

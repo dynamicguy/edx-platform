@@ -1418,8 +1418,8 @@ class ProgressPageTests(ModuleStoreTestCase):
                                                          'grade_breakdown': []}))
     def test_page_with_invalidated_certificate_with_html_view(self):
         """
-        Verify that if certificate is marked as invalidated than re-generate button should not
-        appear on progress page.
+        Verify that for html certs if certificate is marked as invalidated than
+        re-generate button should not appear on progress page.
         """
         generated_certificate = self.generate_certificate(
             "http://www.example.com/certificate.pdf", "honor"
@@ -1452,8 +1452,8 @@ class ProgressPageTests(ModuleStoreTestCase):
                                                          'grade_breakdown': []}))
     def test_page_with_invalidated_certificate_with_pdf(self):
         """
-        Verify that if certificate is marked as invalidated than re-generate button should not
-        appear on progress page.
+        Verify that for pdf certs if certificate is marked as invalidated than
+        re-generate button should not appear on progress page.
         """
         generated_certificate = self.generate_certificate(
             "http://www.example.com/certificate.pdf", "honor"
