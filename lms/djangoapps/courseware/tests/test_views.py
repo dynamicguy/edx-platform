@@ -1490,6 +1490,7 @@ class ProgressPageTests(ModuleStoreTestCase):
             mode=mode
         )
 
+
 @attr('shard_1')
 class VerifyCourseKeyDecoratorTests(TestCase):
     """
