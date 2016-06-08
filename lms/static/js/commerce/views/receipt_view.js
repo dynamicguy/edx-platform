@@ -64,10 +64,16 @@ var edx = edx || {};
             });
         },
         renderUserFullNamePlaceholder: function (username) {
-            var $userFullNamePlaceholder = $(".full_name_placeholder");
-            this.getUserData(username).then(function (userData) {
-                $userFullNamePlaceholder.text(userData.name);
-            });
+            var userModel = Backbone.Model.extend({
+              urlRoot: '/api/user/v1/accounts/',
+                url: function() {
+                    return this.urlRoot + this.id;
+                }
+            }), user;
+            user = new userModel({id:username});
+            user.fetch({success: function(userData) {
+                $(".full_name_placeholder").text(userData.get('name'));
+            }});
         },
         renderProvider: function (context) {
             var templateHtml = $("#provider-tpl").html(),
@@ -307,19 +313,6 @@ var edx = edx || {};
             }
 
             return null;
-        },
-        /**
-         * Retrieve user data from LMS.
-         * @param  {string} username The username of the user.
-         * @return {object} JQuery Promise.
-         */
-        getUserData: function (username) {
-            var userAPIUrl = '/api/user/v1/accounts/{username}';
-            return $.ajax({
-                url: edx.StringUtils.interpolate(userAPIUrl, {username: username}),
-                type: 'GET',
-                dataType: 'json'
-            });
         }
     });
 
